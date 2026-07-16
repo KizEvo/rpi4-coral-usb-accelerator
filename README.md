@@ -1,5 +1,7 @@
 # Raspberry Pi 4 and Coral USB Accelerator
 
+<img width="4096" height="2304" alt="image" src="https://github.com/user-attachments/assets/e34e0443-ae7b-4c61-9620-370b1b52cc8a" />
+
 **Disclaimer**: pre-trained model and labels belongs to their respective owners, original link: https://gweb-coral-full.uc.r.appspot.com/models/object-detection.
 
 ## Usage
