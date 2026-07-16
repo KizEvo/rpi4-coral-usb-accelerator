@@ -61,6 +61,11 @@ python3 benchmark.py
 
 <img width="1500" height="900" alt="image" src="https://github.com/user-attachments/assets/b9c01c9d-56e8-4c59-b57e-ee36287b5fb5" />
 
+**Note**: Cores running at 1.5 GHz.
+
+<img width="1500" height="900" alt="image" src="https://github.com/user-attachments/assets/5c7abd93-e74f-4b28-9f3f-c7975e492c30" />
+
+
 ### Misc
 
 Sample label file `coco_labels.txt` and video `in_vid.mp4`
