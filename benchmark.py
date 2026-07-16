@@ -1,37 +1,44 @@
+import matplotlib.pyplot as plt
+import numpy as np
 import subprocess
 import sys
-from pathlib import Path
 import csv
 import os
-import matplotlib.pyplot as plt
+from pathlib import Path
 from matplotlib.ticker import MultipleLocator
-import numpy as np
 
 def run_benchmark(model_f, labels, in_vid, cpu_thread=3, probability=0.5):
     inference_results = []
-    dict = {}
-    # Sort so that CPU version of a model is ran first, then Edge TPU version.
-    sorted_model_files = sorted(model_f, key=str)
-    for model_posixpath in sorted_model_files:
-        # Preprocess the model name.
-        model_str_path = str(model_posixpath)
-        model_name = model_str_path.split("/")[-1]
-        print(f"Running model: ${model_name}")
-        # Runs script.py and waits for it to finish.
+    entry = {}
+    for model_path in sorted(model_f):
+        model_name = model_path.name
         output_name = f"{model_name}_{cpu_thread}_{probability}_out_vid.mp4"
-        process = subprocess.run(['python3', "run_vd.py", model_str_path, labels, in_vid, output_name, str(cpu_thread), str(probability), "NOGEN"], capture_output=True,text=True)
-        result = process.stdout.strip()
-        print(f"Average inference time: {result} ms")
-        # Store the data in array
-        if not "edgetpu" in model_name:
-            model_name_arr = model_name.split("_")
-            common_model_name = "_".join(model_name_arr[:-2])
-            dict["Model"] = common_model_name
-            dict["CPU"] = result
+        process = subprocess.run(
+            [
+                "python3",
+                "run_vd.py",
+                str(model_path),
+                labels,
+                in_vid,
+                output_name,
+                str(cpu_thread),
+                str(probability),
+                "NOGEN",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        inference = float(process.stdout.strip())
+        if "edgetpu" not in model_name:
+            common_model = "_".join(model_name.split("_")[:-2])
+            entry = {
+                "Model": common_model,
+                "CPU": inference,
+            }
         else:
-            dict["EdgeTPU"] = result
-            inference_results.append(dict.copy())
-    # Data is returned in the following format [{Model: value, CPU: value, EdgeTPU: value}, {...}]
+            entry["EdgeTPU"] = inference
+            inference_results.append(entry)
     return inference_results
 
 if __name__ == "__main__":
@@ -41,7 +48,6 @@ if __name__ == "__main__":
     headers = ["Model", "CPU", "EdgeTPU"]
     # Output data
     benchmark_data = []
-
     # ========================== Benchmark ==========================
     tests = [(1, 0.5), (2, 0.5), (3, 0.5)]
     for cpu_thread, probability in tests:
@@ -49,7 +55,8 @@ if __name__ == "__main__":
         intf_results = run_benchmark(model_files, "coco_labels.txt", "in_vid.mp4", cpu_thread, probability)
         benchmark_data.append(intf_results.copy())
         print("========================= Finished ============================\n")
-    print("Draw plots")
+    print("Benchmark data", benchmark_data)
+    print("========== Draw plots ==========")
     # ========================== Output ==========================
     models = [d['Model'] for d in benchmark_data[0]]
     x = np.arange(len(models))
@@ -93,5 +100,5 @@ if __name__ == "__main__":
     ax.legend()
 
     plt.tight_layout()
-    plt.savefig("comparison_plot.png", dpi=150)
+    plt.savefig("comparison_plot_perf.png", dpi=150)
     print("Script done!")
